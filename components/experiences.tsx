@@ -104,40 +104,32 @@ export default function Experiences() {
   const [isMobile, setIsMobile] = useState(false)
   const cardsRef = useRef<(HTMLDivElement | null)[]>([])
 
+  // Detect mobile
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768)
-    checkMobile()
-    window.addEventListener("resize", checkMobile)
-    return () => window.removeEventListener("resize", checkMobile)
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener("resize", check)
+    return () => window.removeEventListener("resize", check)
   }, [])
 
+  // Mobile: auto-open card when it scrolls into the center of the screen
+  // Only opens (never closes) to avoid the expand/collapse loop bug
   useEffect(() => {
     if (!isMobile) return
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          const index = cardsRef.current.findIndex((el) => el === entry.target)
-          if (index === -1) return
-
           if (entry.isIntersecting) {
-            setExpandedIndex(index)
-          } else {
-            setExpandedIndex((prev) => (prev === index ? null : prev))
+            const index = cardsRef.current.findIndex((el) => el === entry.target)
+            if (index !== -1) setExpandedIndex(index)
           }
         })
       },
-      {
-        root: null,
-        rootMargin: "-35% 0px -35% 0px", // Trigger when the element is in the middle 30% of the screen
-        threshold: 0,
-      }
+      { root: null, rootMargin: "-30% 0px -30% 0px", threshold: 0 }
     )
 
-    cardsRef.current.forEach((card) => {
-      if (card) observer.observe(card)
-    })
-
+    cardsRef.current.forEach((card) => { if (card) observer.observe(card) })
     return () => observer.disconnect()
   }, [isMobile])
 
@@ -168,9 +160,9 @@ export default function Experiences() {
               <div 
                 key={index} 
                 className="group w-full"
-                ref={(el) => {
-                  cardsRef.current[index] = el;
-                }}
+                ref={(el) => { cardsRef.current[index] = el }}
+                onMouseEnter={!isMobile ? () => setExpandedIndex(index) : undefined}
+                onMouseLeave={!isMobile ? () => setExpandedIndex(null) : undefined}
               >
                 {/* Timeline line and dot - simplified for responsive */}
                 <div className="flex gap-4 md:gap-6">
@@ -187,14 +179,12 @@ export default function Experiences() {
 
                   {/* Card content */}
                   <div 
-                    onMouseEnter={() => setExpandedIndex(index)}
-                    onMouseLeave={() => setExpandedIndex(null)}
                     onClick={() => toggleExpanded(index)}
                     className="w-full text-left pb-4 cursor-pointer focus:outline-none"
                     role="button"
                     tabIndex={0}
                   >
-                    <div className="p-4 md:p-6 lg:p-8 border border-border rounded-lg md:rounded-xl hover:border-accent/60 transition-all duration-300 hover:shadow-lg hover:bg-muted/30 backdrop-blur-sm">
+                    <div className="p-4 md:p-6 lg:p-8 border border-border rounded-lg md:rounded-xl hover:border-accent/60 transition-[border-color,box-shadow,background-color] duration-300 hover:shadow-lg hover:bg-muted/30">
                       {/* Header with title and badge */}
                       <div className="flex flex-col sm:flex-row justify-between items-start gap-3 md:gap-4 mb-3 md:mb-4">
                         <div className="flex-1 min-w-0">
@@ -243,11 +233,11 @@ export default function Experiences() {
 
                       {/* Expanded content */}
                       <div 
-                        className={`grid transition-all duration-500 ease-in-out ${
-                          expandedIndex === index ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                        className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                          expandedIndex === index ? "max-h-[1000px] opacity-100" : "max-h-0 opacity-0"
                         }`}
                       >
-                        <div className="overflow-hidden">
+                        <div>
                           <div className="mt-6 md:mt-8 pt-6 md:pt-8 border-t border-border/50 space-y-4 md:space-y-6">
                             {/* Highlights */}
                             <div>
