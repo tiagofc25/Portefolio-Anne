@@ -1,9 +1,25 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { ChevronDown, Award, Star, Users, CheckCircle, TrendingUp } from 'lucide-react'
 
 const experiences = [
+  {
+    title: "Junior Event Project Manager",
+    company: "Cartier",
+    period: "January - July",
+    description:
+      "Contributed to the coordination and production of international High Jewelry events, supporting the development of creative concepts, scenography, and artistic direction while ensuring consistency with Cartier’s brand identity. Collaborated with external partners and internal teams to coordinate event operations, from preparation to on-site execution, contributing to the delivery of high-end experiences in a demanding international environment.",
+    highlights: [
+      "High Jewelry Event (May 2026): Coordination and production of international luxury events from concept to execution",
+      "Artistic direction support: creative concepts, scenography and brand coherence",
+      "Management of external partners and on-site event operations"
+    ],
+    skills: ["Event Management", "Project Management", "Luxury Events", "VIP Relations", "Logistics", "Brand Image"],
+    type: "past",
+    image: "/images/Cartier-Logo.png",
+    imageClassName: "w-32 sm:w-40 md:w-48 object-contain"
+  },
   {
     title: "Luxury Events Head Hostess & Coordinator",
     company: "Florence Doré Agency",
@@ -85,6 +101,45 @@ const experiences = [
 
 export default function Experiences() {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
+  const cardsRef = useRef<(HTMLDivElement | null)[]>([])
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768)
+    checkMobile()
+    window.addEventListener("resize", checkMobile)
+    return () => window.removeEventListener("resize", checkMobile)
+  }, [])
+
+  useEffect(() => {
+    if (!isMobile) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const index = cardsRef.current.findIndex((el) => el === entry.target)
+          if (index === -1) return
+
+          if (entry.isIntersecting) {
+            setExpandedIndex(index)
+          } else {
+            setExpandedIndex((prev) => (prev === index ? null : prev))
+          }
+        })
+      },
+      {
+        root: null,
+        rootMargin: "-35% 0px -35% 0px", // Trigger when the element is in the middle 30% of the screen
+        threshold: 0,
+      }
+    )
+
+    cardsRef.current.forEach((card) => {
+      if (card) observer.observe(card)
+    })
+
+    return () => observer.disconnect()
+  }, [isMobile])
 
   const toggleExpanded = (index: number) => {
     setExpandedIndex(expandedIndex === index ? null : index)
@@ -97,7 +152,7 @@ export default function Experiences() {
           <div className="mb-12 md:mb-16 lg:mb-24">
             <div className="flex items-start gap-4 mb-6">
               <div className="flex-1 min-w-0">
-                <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-foreground tracking-tight mb-3">
+                <h1 className="text-4xl sm:text-5xl md:text-6xl font-normal text-foreground tracking-tight mb-3">
                   Professional Experience
                 </h1>
                 <p className="text-base sm:text-lg text-muted-foreground max-w-2xl leading-relaxed">
@@ -110,7 +165,13 @@ export default function Experiences() {
 
           <div className="space-y-4 md:space-y-6 mb-24">
             {experiences.map((exp, index) => (
-              <div key={index} className="group w-full">
+              <div 
+                key={index} 
+                className="group w-full"
+                ref={(el) => {
+                  cardsRef.current[index] = el;
+                }}
+              >
                 {/* Timeline line and dot - simplified for responsive */}
                 <div className="flex gap-4 md:gap-6">
                   <div className="flex flex-col items-center flex-shrink-0 pt-2">
@@ -125,7 +186,14 @@ export default function Experiences() {
                   </div>
 
                   {/* Card content */}
-                  <button onClick={() => toggleExpanded(index)} className="w-full text-left pb-4">
+                  <div 
+                    onMouseEnter={() => setExpandedIndex(index)}
+                    onMouseLeave={() => setExpandedIndex(null)}
+                    onClick={() => toggleExpanded(index)}
+                    className="w-full text-left pb-4 cursor-pointer focus:outline-none"
+                    role="button"
+                    tabIndex={0}
+                  >
                     <div className="p-4 md:p-6 lg:p-8 border border-border rounded-lg md:rounded-xl hover:border-accent/60 transition-all duration-300 hover:shadow-lg hover:bg-muted/30 backdrop-blur-sm">
                       {/* Header with title and badge */}
                       <div className="flex flex-col sm:flex-row justify-between items-start gap-3 md:gap-4 mb-3 md:mb-4">
@@ -135,7 +203,7 @@ export default function Experiences() {
                               {exp.title}
                             </h3>
                             {exp.type === "current" && (
-                              <span className="px-2 md:px-3 py-1 text-xs font-bold bg-accent text-accent-foreground rounded-full uppercase tracking-wider flex-shrink-0">
+                              <span className="px-2 md:px-3 py-1 text-xs font-normal bg-accent text-accent-foreground rounded-full uppercase tracking-wider flex-shrink-0">
                                 Current
                               </span>
                             )}
@@ -168,53 +236,59 @@ export default function Experiences() {
                           <img
                             src={exp.image || "/placeholder.svg"}
                             alt={`${exp.title}`}
-                            className="w-full sm:w-1/2 max-h-48 md:max-h-64 rounded-lg object-cover"
+                            className={exp.imageClassName || "w-full sm:w-1/2 max-h-48 md:max-h-64 rounded-lg object-cover"}
                           />
                         </div>
                       )}
 
                       {/* Expanded content */}
-                      {expandedIndex === index && (
-                        <div className="mt-6 md:mt-8 pt-6 md:pt-8 border-t border-border/50 space-y-4 md:space-y-6 animate-in fade-in slide-in-from-top-2 duration-500">
-                          {/* Highlights */}
-                          <div>
-                            <h4 className="text-xs md:text-sm font-bold text-foreground uppercase tracking-widest mb-3 md:mb-4 flex items-center gap-2">
-                              <TrendingUp size={14} className="text-accent flex-shrink-0" />
-                              Key Achievements
-                            </h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
-                              {exp.highlights.map((highlight, i) => (
-                                <div
-                                  key={i}
-                                  className="flex items-start gap-2 md:gap-3 p-2 md:p-3 bg-accent/5 rounded-lg border border-accent/20"
-                                >
-                                  <CheckCircle size={14} className="text-accent flex-shrink-0 mt-0.5" />
-                                  <span className="text-xs md:text-sm text-foreground">{highlight}</span>
-                                </div>
-                              ))}
+                      <div 
+                        className={`grid transition-all duration-500 ease-in-out ${
+                          expandedIndex === index ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                        }`}
+                      >
+                        <div className="overflow-hidden">
+                          <div className="mt-6 md:mt-8 pt-6 md:pt-8 border-t border-border/50 space-y-4 md:space-y-6">
+                            {/* Highlights */}
+                            <div>
+                              <h4 className="text-xs md:text-sm font-normal text-foreground uppercase tracking-widest mb-3 md:mb-4 flex items-center gap-2">
+                                <TrendingUp size={14} className="text-accent flex-shrink-0" />
+                                Key Achievements
+                              </h4>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
+                                {exp.highlights.map((highlight, i) => (
+                                  <div
+                                    key={i}
+                                    className="flex items-start gap-2 md:gap-3 p-2 md:p-3 bg-accent/5 rounded-lg border border-accent/20"
+                                  >
+                                    <CheckCircle size={14} className="text-accent flex-shrink-0 mt-0.5" />
+                                    <span className="text-xs md:text-sm text-foreground">{highlight}</span>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
-                          </div>
 
-                          {/* Skills */}
-                          <div>
-                            <h4 className="text-xs md:text-sm font-bold text-foreground uppercase tracking-widest mb-3 md:mb-4">
-                              Skills Used
-                            </h4>
-                            <div className="flex flex-wrap gap-2">
-                              {exp.skills.map((skill, i) => (
-                                <span
-                                  key={i}
-                                  className="px-2 md:px-4 py-1 md:py-2 bg-accent/10 hover:bg-accent/20 text-accent text-xs md:text-sm font-medium rounded-full border border-accent/30 transition-all duration-200"
-                                >
-                                  {skill}
-                                </span>
-                              ))}
+                            {/* Skills */}
+                            <div>
+                              <h4 className="text-xs md:text-sm font-normal text-foreground uppercase tracking-widest mb-3 md:mb-4">
+                                Skills Used
+                              </h4>
+                              <div className="flex flex-wrap gap-2">
+                                {exp.skills.map((skill, i) => (
+                                  <span
+                                    key={i}
+                                    className="px-2 md:px-4 py-1 md:py-2 bg-accent/10 hover:bg-accent/20 text-accent text-xs md:text-sm font-medium rounded-full border border-accent/30 transition-all duration-200"
+                                  >
+                                    {skill}
+                                  </span>
+                                ))}
+                              </div>
                             </div>
                           </div>
                         </div>
-                      )}
+                      </div>
                     </div>
-                  </button>
+                  </div>
                 </div>
               </div>
             ))}
