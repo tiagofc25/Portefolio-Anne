@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState } from "react"
 import Navigation from "@/components/navigation"
 import Hero from "@/components/hero"
 import About from "@/components/about"
@@ -11,40 +11,11 @@ import Footer from "@/components/footer"
 
 export default function Home() {
   const [activeSection, setActiveSection] = useState("hero")
-  const observerRef = useRef<IntersectionObserver | null>(null)
-
-  useEffect(() => {
-    const sections = ["hero", "about", "education", "experiences", "contact"]
-    
-    // Set up an intersection observer to highlight the active navbar link based on scroll
-    observerRef.current = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveSection(entry.target.id)
-          }
-        })
-      },
-      {
-        root: null,
-        rootMargin: "-20% 0px -60% 0px", // Trigger when the top of the section reaches 20% from the top of the viewport
-        threshold: 0,
-      }
-    )
-
-    sections.forEach((id) => {
-      const el = document.getElementById(id)
-      if (el) observerRef.current?.observe(el)
-    })
-
-    return () => observerRef.current?.disconnect()
-  }, [])
 
   const handleNavigate = (id: string) => {
-    const el = document.getElementById(id)
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth" })
-    }
+    // Scroll to top when changing pages
+    window.scrollTo({ top: 0, behavior: "smooth" })
+    setActiveSection(id)
   }
 
   return (
@@ -52,11 +23,25 @@ export default function Home() {
       <Navigation activeSection={activeSection} setActiveSection={handleNavigate} />
       
       <main className="flex-1">
-        <div id="hero"><Hero onNavigate={handleNavigate} /></div>
-        <div id="about"><About /></div>
-        <div id="education"><Education /></div>
-        <div id="experiences"><Experiences /></div>
-        <div id="contact"><Contact /></div>
+        <div className={activeSection === "hero" ? "block animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both" : "hidden"}>
+          <Hero onNavigate={handleNavigate} />
+        </div>
+        
+        <div className={activeSection === "about" ? "block animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both" : "hidden"}>
+          <About />
+        </div>
+        
+        <div className={activeSection === "education" ? "block animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both" : "hidden"}>
+          <Education />
+        </div>
+        
+        <div className={activeSection === "experiences" ? "block animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both" : "hidden"}>
+          <Experiences />
+        </div>
+        
+        <div className={activeSection === "contact" ? "block animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out fill-mode-both" : "hidden"}>
+          <Contact />
+        </div>
       </main>
 
       <Footer />
